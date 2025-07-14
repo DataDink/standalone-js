@@ -2,7 +2,7 @@ export default
 /**
  * @module xml
  * @description Rudimentary XML parsing.
- * @namespace Xml
+ * @class Xml
  * @author Greenwald
  * @license PublicDomain
  * @note This is only a parser and does not enforce XML standards.
@@ -333,3 +333,5 @@ class Xml {
     }
   }
 }
+
+export const {Node, Element, Text, Comment, CData, Declaration, Metadata} = Xml;

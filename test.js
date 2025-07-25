@@ -13,6 +13,15 @@ const fail = '\x1b[31m✘\x1b[0m';
 const warn = '\x1b[33m⚠️\x1b[0m';
 const root = PATH.resolve('.');
 const suites = [];
+const [suitename, testname] = process.argv.slice(2);
+
+let unhandledRejection = () => {};
+process.on('unhandledRejection', (reason, promise) => { unhandledRejection(reason); });
+process.on('uncaughtException', (error) => { unhandledRejection(error); });
+
+console.info(`\x1b[47m
+  Running Test(s)\r\x1b[0m
+`);
 
 const search = [root];
 while (search.length) {
@@ -23,63 +32,65 @@ while (search.length) {
     const path = PATH.join(dir, entry);
     const stat = await FS.lstat(path);
     if (stat.isDirectory()) { search.push(path); }
-    else if (/^.+?\.test\.js$/.test(entry)) { 
-      suites.push({
+    else if (suitename && !entry.endsWith(`${suitename}.test.js`)) { continue; }
+    else if (/^.+?\.test\.js$/.test(entry)) {
+      const suite = {
         path,
         name: entry.replace(/\.test.js$/, ''),
-        tests: Object.entries(await import(path))
+        failed: false,
+        tests: []
+      }; 
+      suites.push(suite);
+      console.log(`\x1b[33m${suite.name}\x1b[0m`);
+
+      try { 
+        const tests = Object.entries(await import(path))
           .filter(([name,item]) => typeof(item) === 'function')
+          .filter(([name]) => !testname || name === testname)
           .map(([name,test])=>({
             name,
             test,
             asserts: [],
             errors: [],
             warns: []
-          }))
-      }); 
-    }
-  }
-}
-
-console.info(`\x1b[47m
-  Running ${suites.length} Test Suites\x1b[0m
-`);
-
-for (const suite of suites) {
-  console.log(`\x1b[33mSuite: ${suite.name}\x1b[0m`);
-  for (const test of suite.tests) {
-    try {
-      await test.test((assertion, message) => test.asserts.push({assertion, message}));
-      if (!test.asserts.length) { test.warns.push(`${warn} No assertions made.`); }
-    } catch (error) { test.errors.push(error?.message ?? `${error ?? 'Unknown Error'}`); }
-    const failed = test.asserts.some(({assertion}) => !assertion) || test.errors.length;
-    if (!failed && !test.warns.length) { console.log(`  ${pass} ${test.name}`); }
-    else if (!failed) {
-      console.log(`  ${warn} ${test.name}`);
-      for (const w of test.warns) {
-        console.warn(`\x1b[33m    Warning: ${w.trim()}\x1b[0m`);
-      }
-    } else {
-      console.log(`  ${fail} ${test.name}`);
-      for (const {assertion, message} of test.asserts.filter(({assertion}) => !assertion)) {
-        console.log(`    ${fail} ${message.trim()}`);
-      }
-      for (const e of test.errors) {
-        console.error(`\x1b[31m    Error: ${e.trim()}\x1b[0m`);
-      }
-      for (const w of test.warns) {
-        console.warn(`\x1b[33m    Warning: ${w.trim()}\x1b[0m`);
+          }));
+        if (!tests.length) {
+          suite.failed = true;
+          console.error(`  \x1b[31mNo tests found in ${suite.name}.\x1b[0m`);
+        }
+        for (const test of tests) {
+          suite.tests.push(test);
+          try {
+            await new Promise(async (resolve, reject) => {
+              unhandledRejection = e => reject(new Error(`Unhandled Async Rejection: ${e?.message ?? e}`));
+              await test.test((assertion, message) => test.asserts.push({assertion, message}));
+              resolve();
+            });
+          } catch (error) { test.errors.push(error?.message ?? `${error ?? 'Unknown Error'}`); }
+          if (!test.asserts.length) { 
+            suite.failed = true;
+            test.warns.push(`${warn} No assertions made.`); 
+          }
+          const failures = test.asserts.filter(a => !a.assertion).map(a => a.message).concat(test.errors);
+          if (failures.length) {
+            suite.failed = true;
+            console.log(`  ${fail} ${test.name}`);
+            for (const failure of failures) { console.error(`    \x1b[31m${failure}\x1b[0m`); }
+          } else { console.log(`  ${pass} ${test.name}`); }
+        }
+      } catch (error) { 
+        suite.failed = true;
+        console.error(`  \x1b[31m[Error: ${error?.message ?? error}]\x1b[0m`); 
       }
     }
   }
 }
 
-var total = suites.reduce((c, s) => c + s.tests.length, 0);
-var failed = suites.reduce((c, s) => c + s.tests.filter(t => t.asserts.some(a => !a.assertion) || t.errors.length).length, 0);
-if (failed) {
-  console.log(`\n\x1b[31m${failed} of ${total} tests failed.\x1b[0m`);
-  process.exit(1);
-} else {
-  console.log(`\n\x1b[32mAll ${total} tests passed.\x1b[0m`);
-  process.exit(0);
-}
+const total = suites.reduce((c, s) => c + s.tests.length, 0);
+const failed = suites.reduce((c, s) => c + s.tests.filter(t => t.asserts.some(a => !a.assertion) || t.errors.length).length, 0);
+const broken = suites.filter(s => s.failed).length;
+if (broken) { console.error(`\n\x1b[31m${broken} of ${suites.length} suites failed\x1b[0m`); }
+else { console.log(`\n\x1b[32mAll ${suites.length} suites passed.\x1b[0m`); }
+if (failed) { console.log(`\x1b[31m${failed} of ${total} tests failed.\x1b[0m`); } 
+else { console.log(`\x1b[32mAll ${total} tests passed.\x1b[0m`); }
+process.exit(failed + broken ? 1 : 0);

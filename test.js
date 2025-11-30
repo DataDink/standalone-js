@@ -4,7 +4,6 @@
  * @license PublicDomain
  * @requires NodeJS
  */
-
 /** @typedef {(condition: boolean, message?: string) => void} AssertFunction */
 /**
  * @typedef TestSuite

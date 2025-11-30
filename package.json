@@ -1,0 +1,14 @@
+{
+  "name": "standalone-js",
+  "version": "0.0.0",
+  "description": "_Pure-JS, Standalone Solutions_",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "scripts": {
+    "test": "test.js"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1"
+  }
+}

@@ -1,6 +1,6 @@
+/** @import {AssertFunction} from './test.js' */
 import XML from './xml.js';
 const validNameChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-:';
-/** @typedef {(condition: boolean, message?: string) => void} AssertFunction */
 
 export function validateNameInvalidatesEmpty(/** @type {AssertFunction} */ assert) {
   try { XML.validateName(''); assert(false, 'Expected exception'); }

@@ -2,21 +2,19 @@
 
 _Pure-JS, Standalone Solutions_
 
-## Rules
+> [!WARNING]
+> Breaking changes are sure to happen here.
+> These modules will continue to evolve and deprioritize backwards compatibility.
+> These files should only be copy/pasted into projects, not linked to.
 
-* Raw JS
-* Single File
-* No Dependencies
-* No Post-Processing
-* Fully inline documented (JSDOC/TS)
+# Rules
+* Portable
+* Standalone
+* ES Module
+* No Compile / Raw JS
+* JSDOC/TS Fully Documented
 
-## Guidelines
-
-* Simplistic
-* Single Scope
-* JS Modules
-
-## Tests
+# Tests
 
 All tests are modules with exported functions.
 Requires Node to execute.
@@ -26,7 +24,7 @@ Executes any file ending in `.test.js`
 node test.js 
 ```
 
-## Modules
+# Modules
 
 ### test.js
 

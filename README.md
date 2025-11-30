@@ -61,9 +61,66 @@ A rudimentary XML parser.
 
 _Note: Parser only, does not enforce XML standards_
 
+Example: 
+
 ```javascript
 // deserialize
 const node = XML.parse('<xml />');
 // serialize
 const text = node.toString();
+```
+
+### factory.js
+
+```javascript
+import Factory from './factory.js'
+```
+
+A rudimentary dependency injection factory
+
+Examples:
+
+_basic configuration_
+```javascript
+// Some classes with dependency on each other
+class ClassA {}
+class ClassB {constructor(classa) {}}
+class ClassC {constructor(classb) {}}
+
+// Configure the factory
+const factory = new Factory({
+  'ClassA': {
+    dependencies: [],
+    Factory.toSingleton(async (deps) => new ClassA(...deps))
+  },
+  'ClassB': {
+    dependencies: ['ClassA'],
+    Factory.toSingleton(async (deps) => new ClassB(...deps))
+  },
+  'ClassC': {
+    dependencies: ['ClassB'],
+    Factory.toSingleton(async (deps) => new ClassC(...deps))
+  }
+});
+
+// resolve an instance
+const instance = await factory.resolve('ClassC');
+```
+
+_json configuration via modules_
+```javascript
+// module resolver
+async function resolver(path) => async (deps) => new (await import(path)).default(...deps);
+
+// configure the factory
+const factory = Factory.fromJson(`
+  {
+    "./classa.js": [],
+    "./classb.js": ["./classa.js"],
+    "./classc.js": ["./classb.js"]
+  }
+`, resolver);
+
+// resolve an instance
+const instance = await factory.resolve('./classc.js');
 ```

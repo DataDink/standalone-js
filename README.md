@@ -6,8 +6,9 @@ _Pure-JS, Standalone Solutions_
 
 * Raw JS
 * Single File
-* No Dependencies (except browser or node)
+* No Dependencies
 * No Post-Processing
+* Fully inline documented (JSDOC/TS)
 
 ## Guidelines
 

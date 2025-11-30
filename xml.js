@@ -35,10 +35,10 @@ class Xml {
   /** @static @readonly @property {InstanceType<Xml.Parser>[]} defaultParsers - The default set of parsers used by Xml.parse when no parsers are provided. */
   static get defaultParsers() { return /** @type {InstanceType<Xml.Parser>[]} */ ([
     new Xml.Text.Parser(),
-    new Xml.Declaration.Parser(),
-    new Xml.Metadata.Parser(),
-    new Xml.Comment.Parser(),
     new Xml.CData.Parser(),
+    new Xml.Comment.Parser(),
+    new Xml.Metadata.Parser(),
+    new Xml.Declaration.Parser(),
     new Xml.Element.Parser(),
   ]); }
   /**

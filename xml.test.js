@@ -258,3 +258,32 @@ export function elementParserParsesEmptyElementWithAttributes(/** @type {AssertF
   assert(result.attributes.attr1 === 'value1', `Expected attr1 'value1', got '${result.attributes.attr1}'`);
   assert(result.attributes.attr2 === 'value2', `Expected attr2 'value2', got '${result.attributes.attr2}'`);
 }
+
+export function parseIntegrationTest(/** @type {AssertFunction} */ assert) {
+  const xmlText = `
+    <?xml version="1.0"?>
+    <!-- This is a comment -->
+    <root attr="value">
+      Hello World
+      <![CDATA[ some <cdata> content ]]>
+      <child/>
+    </root>
+  `;
+  const result = XML.parse(xmlText);
+  const doc = [...result];
+  assert(doc.length === 7, `Expected 7 outer items, got ${doc.length}`);
+  assert(doc[0] instanceof XML.Text, 'Expected first item to be XML.Text');
+  assert(doc[1] instanceof XML.Declaration, 'Expected second item to be XML.Declaration');
+  assert(doc[2] instanceof XML.Text, 'Expected third item to be XML.Text');
+  assert(doc[3] instanceof XML.Comment, 'Expected fourth item to be XML.Comment');
+  assert(doc[4] instanceof XML.Text, 'Expected fifth item to be XML.Text');
+  assert(doc[5] instanceof XML.Element, 'Expected sixth item to be XML.Element');
+  assert(doc[6] instanceof XML.Text, 'Expected seventh item to be XML.Text');
+  const root = [...doc[5]];
+  assert(root.length === 5, `Expected 5 root items, got ${root.length}`);
+  assert(root[0] instanceof XML.Text, 'Expected first root item to be XML.Text');
+  assert(root[1] instanceof XML.CData, 'Expected second root item to be XML.CData');
+  assert(root[2] instanceof XML.Text, 'Expected third root item to be XML.Text');
+  assert(root[3] instanceof XML.Element, 'Expected fourth root item to be XML.Element');
+  assert(root[4] instanceof XML.Text, 'Expected fifth root item to be XML.Text');
+}

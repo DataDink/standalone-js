@@ -109,9 +109,6 @@ const instance = await factory.resolve('ClassC');
 
 _json configuration via modules_
 ```javascript
-// module resolver
-async function resolver(path) => async (deps) => new (await import(path)).default(...deps);
-
 // configure the factory
 const factory = Factory.fromJson(`
   {
@@ -119,7 +116,7 @@ const factory = Factory.fromJson(`
     "./classb.js": ["./classa.js"],
     "./classc.js": ["./classb.js"]
   }
-`, resolver);
+`, Factory.toSingleton(Factory.toImport(path));
 
 // resolve an instance
 const instance = await factory.resolve('./classc.js');

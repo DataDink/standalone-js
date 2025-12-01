@@ -28,9 +28,20 @@ class Factory {
   }
   /**
    * @static
-   * @method toSingleton - Wraps a factory function to ensure it only creates a single instance (singleton pattern).
-   * @param {TypeFactory} factory - The factory function to wrap.
-   * @returns {TypeFactory} - A new factory function that returns the same instance on subsequent calls.
+   * @method toImport - Generates an import TypeFactory that constructs the default export of the specified module path.
+   * @param {string} path - The module path to import.
+   * @returns {TypeFactory} - The TypeFactory for the import path.
+   */
+  static toImport(path) { 
+    return async function(dependencies) {
+      new (await import(path)).default(...dependencies);
+    }; 
+  }
+  /**
+   * @static
+   * @method toSingleton - Wraps a TypeFactory function to ensure it only creates a single instance (singleton pattern).
+   * @param {TypeFactory} factory - The TypeFactory function to wrap.
+   * @returns {TypeFactory} - A new TypeFactory function that returns the same instance on subsequent calls.
    */
   static toSingleton(factory) {
     let instance = /** @type {any} */ (null);
